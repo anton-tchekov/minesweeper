@@ -3,6 +3,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "ws2812.c"
+#include "board.c"
 #include "buttons.c"
 
 enum
@@ -49,19 +50,24 @@ int main(void)
 	led_clear();
 	led_update();
 
-	// TODO: Define Board Structure
-	// TODO: Generate Board with mines
+	generateField(5);
+	revealAllFields();
 
 	cx = 0;
 	cy = 0;
 
 	for(;;)
 	{
-		buttons_scan();
+		//buttons_scan();
 
 		/*led_clear();
 		led_pixel(cx, cy, 0, 0, 255);
 		led_update();*/
+
+		// show initial field
+		led_clear();
+		displayField();
+		led_update();
 
 		// TODO: Check for Cursor input
 		// TODO: Handle cursor action (dig/flag)
@@ -71,4 +77,3 @@ int main(void)
 
 	return 0;
 }
-

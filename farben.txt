@@ -6,3 +6,11 @@ Cursor            : Blau Blinkend
 2 Mine            : Gelb
 3 Mine            : Orange
 4 Mine            : Rot
+
+
+=== GAME STATES ===
+0x00        : Keine Minen
+0xF0        : keine Minen (aufgedeckt)
+0xO1-0x04   : 1-4 Minen
+0xF1-0xF4   : 1-4 Minen (aufgedeckt)
+0xFF        : HIER EINE MINE!
