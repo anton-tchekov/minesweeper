@@ -137,17 +137,15 @@ static void _ws2812(uint8_t *pixels, uint16_t count)
 
 static void led_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b)
 {
-	if(x < LED_WIDTH && y < LED_HEIGHT)
-	{
-		uint16_t i;
-		x = (LED_WIDTH - 1) - x;
-		y = (LED_HEIGHT - 1) - y;
-		i = 3 * ((y % 2) ? ((LED_WIDTH * y) + ((LED_WIDTH - 1) - x)) : (LED_WIDTH * y + x));
+	uint16_t i;
+	x = (LED_WIDTH - 1) - x;
+	y = (LED_HEIGHT - 1) - y;
+	i = 3 * ((y % 2) ? ((LED_WIDTH * y) + ((LED_WIDTH - 1) - x)) :
+		(LED_WIDTH * y + x));
 
-		_pixels[i] = g;
-		_pixels[++i] = r;
-		_pixels[++i] = b;
-	}
+	_pixels[i] = g;
+	_pixels[++i] = r;
+	_pixels[++i] = b;
 }
 
 static void led_clear(void)
@@ -159,4 +157,3 @@ static void led_update(void)
 {
 	_ws2812(_pixels, LED_BYTES);
 }
-

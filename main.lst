@@ -5,494 +5,92 @@
    5               	__tmp_reg__ = 0
    6               	__zero_reg__ = 1
    7               		.text
-   8               	.Ltext0:
-   9               		.cfi_sections	.debug_frame
-  10               		.file 0 "/home/files/minesweeper" "main.c"
-  11               		.section	.text.startup,"ax",@progbits
-  12               	.global	main
-  14               	main:
-  15               	.LFB4:
-  16               		.file 1 "main.c"
-   1:main.c        **** #include <stdint.h>
-   2:main.c        **** #include <avr/io.h>
-   3:main.c        **** #include <string.h>
-   4:main.c        **** #include "ws2812.c"
-   5:main.c        **** 
-   6:main.c        **** int main(void)
-   7:main.c        **** {
-  17               		.loc 1 7 1 view -0
-  18               		.cfi_startproc
-  19               	/* prologue: function */
-  20               	/* frame size = 0 */
-  21               	/* stack size = 0 */
-  22               	.L__stack_usage = 0
-   8:main.c        **** 	led_clear();
-  23               		.loc 1 8 2 view .LVU1
-  24               	.LBB13:
-  25               	.LBI13:
-  26               		.file 2 "ws2812.c"
-   1:ws2812.c      **** #define LED_WIDTH       10
-   2:ws2812.c      **** #define LED_HEIGHT      10
-   3:ws2812.c      **** #define LED_PIXELS        (LED_WIDTH * LED_HEIGHT)
-   4:ws2812.c      **** #define LED_BYTES         (3 * LED_PIXELS)
-   5:ws2812.c      **** 
-   6:ws2812.c      **** #define WS2812_OUT        PORTD
-   7:ws2812.c      **** #define WS2812_DIR        DDRD
-   8:ws2812.c      **** #define WS2812_PIN        PD2
-   9:ws2812.c      **** 
-  10:ws2812.c      **** #define W_ZERO_PULSE    350
-  11:ws2812.c      **** #define W_ONE_PULSE     900
-  12:ws2812.c      **** #define W_TOTAL_PERIOD 1250
-  13:ws2812.c      **** #define W_FIXED_LOW       2
-  14:ws2812.c      **** #define W_FIXED_HIGH      4
-  15:ws2812.c      **** #define W_FIXED_TOTAL     8
-  16:ws2812.c      **** 
-  17:ws2812.c      **** #define W_ZERO_CYCLES      (((F_CPU / 1000) * W_ZERO_PULSE) / 1000000)
-  18:ws2812.c      **** #define W_ONE_CYCLES       (((F_CPU / 1000) * W_ONE_PULSE + 500000) / 1000000)
-  19:ws2812.c      **** #define W_TOTAL_CYCLES     (((F_CPU / 1000) * W_TOTAL_PERIOD + 500000) / 1000000)
-  20:ws2812.c      **** 
-  21:ws2812.c      **** #define W_1                (W_ZERO_CYCLES - W_FIXED_LOW)
-  22:ws2812.c      **** #define W_2                (W_ONE_CYCLES - w_fixedhigh - W_1)
-  23:ws2812.c      **** #define W_3                (W_TOTAL_CYCLES - W_FIXED_TOTAL - W_1 - W_2)
-  24:ws2812.c      **** 
-  25:ws2812.c      **** #if (W_1 > 0)
-  26:ws2812.c      **** #define W_1_NOPS W_1
-  27:ws2812.c      **** #else
-  28:ws2812.c      **** #define W_1_NOPS  0
-  29:ws2812.c      **** #endif
-  30:ws2812.c      **** 
-  31:ws2812.c      **** #define w_lowtime (((W_1_NOPS + W_FIXED_LOW) * 1000000) / (F_CPU / 1000))
-  32:ws2812.c      **** 
-  33:ws2812.c      **** #if (w_lowtime > 550)
-  34:ws2812.c      **** #error "F_CPU to low"
-  35:ws2812.c      **** #elif (w_lowtime > 450)
-  36:ws2812.c      **** #warning "Critical timing"
-  37:ws2812.c      **** #endif
-  38:ws2812.c      **** 
-  39:ws2812.c      **** #if (W_2 > 0)
-  40:ws2812.c      **** #define W_2_NOPS W_2
-  41:ws2812.c      **** #else
-  42:ws2812.c      **** #define W_2_NOPS 0
-  43:ws2812.c      **** #endif
-  44:ws2812.c      **** 
-  45:ws2812.c      **** #if (W_3 > 0)
-  46:ws2812.c      **** #define W_3_NOPS W_3
-  47:ws2812.c      **** #else
-  48:ws2812.c      **** #define W_3_NOPS 0
-  49:ws2812.c      **** #endif
-  50:ws2812.c      **** 
-  51:ws2812.c      **** #define W_NOP_1  "nop      \n\t"
-  52:ws2812.c      **** #define W_NOP_2  "rjmp .+0 \n\t"
-  53:ws2812.c      **** #define W_NOP_4  W_NOP_2 W_NOP_2
-  54:ws2812.c      **** #define W_NOP_8  W_NOP_4 W_NOP_4
-  55:ws2812.c      **** #define W_NOP_16 W_NOP_8 W_NOP_8
-  56:ws2812.c      **** 
-  57:ws2812.c      **** static uint8_t _pixels[LED_BYTES];
-  58:ws2812.c      **** 
-  59:ws2812.c      **** static void _ws2812(uint8_t *pixels, uint16_t count)
-  60:ws2812.c      **** {
-  61:ws2812.c      **** 	uint8_t b, c, h, l, s;
-  62:ws2812.c      **** 	h = (1 << WS2812_PIN);
-  63:ws2812.c      **** 	WS2812_DIR |= h;
-  64:ws2812.c      **** 	l = ~h & WS2812_OUT;
-  65:ws2812.c      **** 	h |= WS2812_OUT;
-  66:ws2812.c      **** 	s = SREG;
-  67:ws2812.c      **** 	asm volatile ("cli");
-  68:ws2812.c      **** 	while(count--)
-  69:ws2812.c      **** 	{
-  70:ws2812.c      **** 		b = *pixels++;
-  71:ws2812.c      **** 		asm volatile
-  72:ws2812.c      **** 		(
-  73:ws2812.c      **** 			"       ldi   %0,8  \n\t"
-  74:ws2812.c      **** 			"loop%=:            \n\t"
-  75:ws2812.c      **** 			"       out   %2,%3 \n\t"
-  76:ws2812.c      **** #if (W_1_NOPS & 1)
-  77:ws2812.c      **** 	W_NOP_1
-  78:ws2812.c      **** #endif
-  79:ws2812.c      **** #if (W_1_NOPS & 2)
-  80:ws2812.c      **** 	W_NOP_2
-  81:ws2812.c      **** #endif
-  82:ws2812.c      **** #if (W_1_NOPS & 4)
-  83:ws2812.c      **** 	W_NOP_4
-  84:ws2812.c      **** #endif
-  85:ws2812.c      **** #if (W_1_NOPS & 8)
-  86:ws2812.c      **** 	W_NOP_8
-  87:ws2812.c      **** #endif
-  88:ws2812.c      **** #if (W_1_NOPS & 16)
-  89:ws2812.c      **** 	W_NOP_16
-  90:ws2812.c      **** #endif
-  91:ws2812.c      **** 			"       sbrs  %1,7  \n\t"
-  92:ws2812.c      **** 			"       out   %2,%4 \n\t"
-  93:ws2812.c      **** 			"       lsl   %1    \n\t"
-  94:ws2812.c      **** #if (W_2_NOPS & 1)
-  95:ws2812.c      **** 	W_NOP_1
-  96:ws2812.c      **** #endif
-  97:ws2812.c      **** #if (W_2_NOPS & 2)
-  98:ws2812.c      **** 	W_NOP_2
-  99:ws2812.c      **** #endif
- 100:ws2812.c      **** #if (W_2_NOPS & 4)
- 101:ws2812.c      **** 	W_NOP_4
- 102:ws2812.c      **** #endif
- 103:ws2812.c      **** #if (W_2_NOPS & 8)
- 104:ws2812.c      **** 	W_NOP_8
- 105:ws2812.c      **** #endif
- 106:ws2812.c      **** #if (W_2_NOPS & 16)
- 107:ws2812.c      **** 	W_NOP_16
- 108:ws2812.c      **** #endif
- 109:ws2812.c      **** 			"       out   %2,%4 \n\t"
- 110:ws2812.c      **** #if (W_3_NOPS & 1)
- 111:ws2812.c      **** 	W_NOP_1
- 112:ws2812.c      **** #endif
- 113:ws2812.c      **** #if (W_3_NOPS & 2)
- 114:ws2812.c      **** 	W_NOP_2
- 115:ws2812.c      **** #endif
- 116:ws2812.c      **** #if (W_3_NOPS & 4)
- 117:ws2812.c      **** 	W_NOP_4
- 118:ws2812.c      **** #endif
- 119:ws2812.c      **** #if (W_3_NOPS & 8)
- 120:ws2812.c      **** 	W_NOP_8
- 121:ws2812.c      **** #endif
- 122:ws2812.c      **** #if (W_3_NOPS & 16)
- 123:ws2812.c      **** 	W_NOP_16
- 124:ws2812.c      **** #endif
- 125:ws2812.c      **** 			"       dec   %0    \n\t"
- 126:ws2812.c      **** 			"       brne  loop%=\n\t"
- 127:ws2812.c      **** 			: "=&d" (c)
- 128:ws2812.c      **** 			: "r" (b),
- 129:ws2812.c      **** 			"I" (_SFR_IO_ADDR(WS2812_OUT)),
- 130:ws2812.c      **** 			"r" (h),
- 131:ws2812.c      **** 			"r" (l)
- 132:ws2812.c      **** 		);
- 133:ws2812.c      **** 	}
- 134:ws2812.c      **** 
- 135:ws2812.c      **** 	SREG = s;
- 136:ws2812.c      **** }
- 137:ws2812.c      **** 
- 138:ws2812.c      **** static void led_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b)
- 139:ws2812.c      **** {
- 140:ws2812.c      **** 	if(x < LED_WIDTH && y < LED_HEIGHT)
- 141:ws2812.c      **** 	{
- 142:ws2812.c      **** 		uint16_t i;
- 143:ws2812.c      **** 		x = (LED_WIDTH - 1) - x;
- 144:ws2812.c      **** 		y = (LED_HEIGHT - 1) - y;
- 145:ws2812.c      **** 		i = 3 * ((y % 2) ? ((LED_WIDTH * y) + ((LED_WIDTH - 1) - x)) : (LED_WIDTH * y + x));
- 146:ws2812.c      **** 
- 147:ws2812.c      **** 		_pixels[i] = g;
- 148:ws2812.c      **** 		_pixels[++i] = r;
- 149:ws2812.c      **** 		_pixels[++i] = b;
- 150:ws2812.c      **** 	}
- 151:ws2812.c      **** }
- 152:ws2812.c      **** 
- 153:ws2812.c      **** static void led_clear(void)
-  27               		.loc 2 153 13 view .LVU2
-  28               	.LBB14:
- 154:ws2812.c      **** {
- 155:ws2812.c      **** 	memset(_pixels, 0, LED_BYTES);
-  29               		.loc 2 155 2 view .LVU3
-  30 0000 4CE2      		ldi r20,lo8(44)
-  31 0002 51E0      		ldi r21,lo8(1)
-  32 0004 60E0      		ldi r22,0
-  33 0006 70E0      		ldi r23,0
-  34 0008 80E0      		ldi r24,lo8(_pixels)
-  35 000a 90E0      		ldi r25,hi8(_pixels)
-  36 000c 0E94 0000 		call memset
-  37               	.LVL0:
-  38               	.LBE14:
-  39               	.LBE13:
-   9:main.c        **** 	led_pixel(0, 0, 255, 0, 0);
-  40               		.loc 1 9 2 view .LVU4
-  41               	.LBB15:
-  42               	.LBI15:
- 138:ws2812.c      **** {
-  43               		.loc 2 138 13 view .LVU5
- 140:ws2812.c      **** 	{
-  44               		.loc 2 140 2 view .LVU6
-  45               	.LBB16:
- 142:ws2812.c      **** 		x = (LED_WIDTH - 1) - x;
-  46               		.loc 2 142 3 view .LVU7
- 143:ws2812.c      **** 		y = (LED_HEIGHT - 1) - y;
-  47               		.loc 2 143 3 view .LVU8
- 144:ws2812.c      **** 		i = 3 * ((y % 2) ? ((LED_WIDTH * y) + ((LED_WIDTH - 1) - x)) : (LED_WIDTH * y + x));
-  48               		.loc 2 144 3 view .LVU9
- 145:ws2812.c      **** 
-  49               		.loc 2 145 3 view .LVU10
- 147:ws2812.c      **** 		_pixels[++i] = r;
-  50               		.loc 2 147 3 view .LVU11
- 147:ws2812.c      **** 		_pixels[++i] = r;
-  51               		.loc 2 147 14 is_stmt 0 view .LVU12
-  52 0010 1092 0000 		sts _pixels+270,__zero_reg__
- 148:ws2812.c      **** 		_pixels[++i] = b;
-  53               		.loc 2 148 3 is_stmt 1 view .LVU13
-  54               	.LVL1:
- 148:ws2812.c      **** 		_pixels[++i] = b;
-  55               		.loc 2 148 16 is_stmt 0 view .LVU14
-  56 0014 8FEF      		ldi r24,lo8(-1)
-  57 0016 8093 0000 		sts _pixels+271,r24
- 149:ws2812.c      **** 	}
-  58               		.loc 2 149 3 is_stmt 1 view .LVU15
-  59               	.LVL2:
- 149:ws2812.c      **** 	}
-  60               		.loc 2 149 16 is_stmt 0 view .LVU16
-  61 001a 1092 0000 		sts _pixels+272,__zero_reg__
-  62               	.LVL3:
- 149:ws2812.c      **** 	}
-  63               		.loc 2 149 16 view .LVU17
-  64               	.LBE16:
-  65               	.LBE15:
-  10:main.c        **** 	led_update();
-  66               		.loc 1 10 2 is_stmt 1 view .LVU18
-  67               	.LBB17:
-  68               	.LBI17:
- 156:ws2812.c      **** }
- 157:ws2812.c      **** 
- 158:ws2812.c      **** static void led_update(void)
-  69               		.loc 2 158 13 view .LVU19
- 159:ws2812.c      **** {
- 160:ws2812.c      **** 	_ws2812(_pixels, LED_BYTES);
-  70               		.loc 2 160 2 view .LVU20
-  71               	.LBB18:
-  72               	.LBI18:
-  59:ws2812.c      **** {
-  73               		.loc 2 59 13 view .LVU21
-  74               	.LBB19:
-  61:ws2812.c      **** 	h = (1 << WS2812_PIN);
-  75               		.loc 2 61 2 view .LVU22
-  62:ws2812.c      **** 	WS2812_DIR |= h;
-  76               		.loc 2 62 2 view .LVU23
-  63:ws2812.c      **** 	l = ~h & WS2812_OUT;
-  77               		.loc 2 63 2 view .LVU24
-  63:ws2812.c      **** 	l = ~h & WS2812_OUT;
-  78               		.loc 2 63 13 is_stmt 0 view .LVU25
-  79 001e 529A      		sbi 0xa,2
-  64:ws2812.c      **** 	h |= WS2812_OUT;
-  80               		.loc 2 64 2 is_stmt 1 view .LVU26
-  64:ws2812.c      **** 	h |= WS2812_OUT;
-  81               		.loc 2 64 11 is_stmt 0 view .LVU27
-  82 0020 3BB1      		in r19,0xb
-  83 0022 3B7F      		andi r19,lo8(-5)
-  84               	.LVL4:
-  65:ws2812.c      **** 	s = SREG;
-  85               		.loc 2 65 2 is_stmt 1 view .LVU28
-  65:ws2812.c      **** 	s = SREG;
-  86               		.loc 2 65 7 is_stmt 0 view .LVU29
-  87 0024 2BB1      		in r18,0xb
-  65:ws2812.c      **** 	s = SREG;
-  88               		.loc 2 65 4 view .LVU30
-  89 0026 2460      		ori r18,lo8(4)
-  90               	.LVL5:
-  66:ws2812.c      **** 	asm volatile ("cli");
-  91               		.loc 2 66 2 is_stmt 1 view .LVU31
-  66:ws2812.c      **** 	asm volatile ("cli");
-  92               		.loc 2 66 4 is_stmt 0 view .LVU32
-  93 0028 4FB7      		in r20,__SREG__
-  94               	.LVL6:
-  67:ws2812.c      **** 	while(count--)
-  95               		.loc 2 67 2 is_stmt 1 view .LVU33
-  96               	/* #APP */
-  97               	 ;  67 "ws2812.c" 1
-  98 002a F894      		cli
-  99               	 ;  0 "" 2
-  68:ws2812.c      **** 	{
- 100               		.loc 2 68 2 view .LVU34
-  68:ws2812.c      **** 	{
- 101               		.loc 2 68 8 view .LVU35
- 102               	.LVL7:
-  67:ws2812.c      **** 	while(count--)
- 103               		.loc 2 67 2 is_stmt 0 view .LVU36
- 104               	/* #NOAPP */
- 105 002c 80E0      		ldi r24,lo8(_pixels)
- 106 002e 90E0      		ldi r25,hi8(_pixels)
- 107               	.LVL8:
- 108               	.L2:
-  70:ws2812.c      **** 		asm volatile
- 109               		.loc 2 70 3 is_stmt 1 view .LVU37
- 110 0030 FC01      		movw r30,r24
-  70:ws2812.c      **** 		asm volatile
- 111               		.loc 2 70 14 is_stmt 0 view .LVU38
- 112 0032 0196      		adiw r24,1
- 113               	.LVL9:
-  71:ws2812.c      **** 		(
- 114               		.loc 2 71 3 is_stmt 1 view .LVU39
- 115 0034 5081      		ld r21,Z
- 116               	/* #APP */
- 117               	 ;  71 "ws2812.c" 1
- 118 0036 68E0      		       ldi   r22,8  
- 119               		loop100:            
- 120 0038 2BB9      		       out   11,r18 
- 121 003a 0000      		nop      
- 122 003c 00C0      		rjmp .+0 
- 123 003e 57FF      		       sbrs  r21,7  
- 124 0040 3BB9      		       out   11,r19 
- 125 0042 550F      		       lsl   r21    
- 126 0044 0000      		nop      
- 127 0046 00C0      		rjmp .+0 
- 128 0048 00C0      		rjmp .+0 
- 129 004a 00C0      		rjmp .+0 
- 130 004c 00C0      		rjmp .+0 
- 131 004e 00C0      		rjmp .+0 
- 132 0050 3BB9      		       out   11,r19 
- 133 0052 6A95      		       dec   r22    
- 134 0054 01F4      		       brne  loop100
- 135               		
- 136               	 ;  0 "" 2
- 137               	.LVL10:
-  68:ws2812.c      **** 	{
- 138               		.loc 2 68 8 view .LVU40
-  68:ws2812.c      **** 	{
- 139               		.loc 2 68 8 is_stmt 0 view .LVU41
- 140               	/* #NOAPP */
- 141 0056 50E0      		ldi r21,hi8(_pixels+300)
- 142 0058 8030      		cpi r24,lo8(_pixels+300)
- 143 005a 9507      		cpc r25,r21
- 144 005c 01F4      		brne .L2
- 135:ws2812.c      **** }
- 145               		.loc 2 135 2 is_stmt 1 view .LVU42
- 135:ws2812.c      **** }
- 146               		.loc 2 135 7 is_stmt 0 view .LVU43
- 147 005e 4FBF      		out __SREG__,r20
- 148               	.LVL11:
- 149               	.L3:
- 135:ws2812.c      **** }
- 150               		.loc 2 135 7 view .LVU44
- 151               	.LBE19:
- 152               	.LBE18:
- 153               	.LBE17:
-  11:main.c        **** 
-  12:main.c        **** 	for(;;)
- 154               		.loc 1 12 2 is_stmt 1 view .LVU45
-  13:main.c        **** 	{
-  14:main.c        **** 	}
- 155               		.loc 1 14 2 view .LVU46
-  12:main.c        **** 	{
- 156               		.loc 1 12 2 view .LVU47
- 157 0060 00C0      		rjmp .L3
- 158               		.cfi_endproc
- 159               	.LFE4:
- 161               		.local	_pixels
- 162               		.comm	_pixels,300,1
- 163               		.text
- 164               	.Letext0:
- 165               		.file 3 "/usr/lib/gcc/avr/13.2.0/include/stdint-gcc.h"
- 166               		.file 4 "/usr/lib/gcc/avr/13.2.0/include/stddef.h"
- 167               		.file 5 "/usr/avr/include/string.h"
+   8               		.section	.text.startup,"ax",@progbits
+   9               	.global	main
+  11               	main:
+  12               	/* prologue: function */
+  13               	/* frame size = 0 */
+  14               	/* stack size = 0 */
+  15               	.L__stack_usage = 0
+  16 0000 4CE2      		ldi r20,lo8(44)
+  17 0002 51E0      		ldi r21,lo8(1)
+  18 0004 60E0      		ldi r22,0
+  19 0006 70E0      		ldi r23,0
+  20 0008 80E0      		ldi r24,lo8(_pixels)
+  21 000a 90E0      		ldi r25,hi8(_pixels)
+  22 000c 0E94 0000 		call memset
+  23 0010 1092 0000 		sts _pixels+270,__zero_reg__
+  24 0014 8FEF      		ldi r24,lo8(-1)
+  25 0016 8093 0000 		sts _pixels+271,r24
+  26 001a 1092 0000 		sts _pixels+272,__zero_reg__
+  27 001e 529A      		sbi 0xa,2
+  28 0020 3BB1      		in r19,0xb
+  29 0022 3B7F      		andi r19,lo8(-5)
+  30 0024 2BB1      		in r18,0xb
+  31 0026 2460      		ori r18,lo8(4)
+  32 0028 4FB7      		in r20,__SREG__
+  33               	/* #APP */
+  34               	 ;  67 "ws2812.c" 1
+  35 002a F894      		cli
+  36               	 ;  0 "" 2
+  37               	/* #NOAPP */
+  38 002c 80E0      		ldi r24,lo8(_pixels)
+  39 002e 90E0      		ldi r25,hi8(_pixels)
+  40               	.L2:
+  41 0030 FC01      		movw r30,r24
+  42 0032 0196      		adiw r24,1
+  43 0034 5081      		ld r21,Z
+  44               	/* #APP */
+  45               	 ;  71 "ws2812.c" 1
+  46 0036 68E0      		       ldi   r22,8  
+  47               		loop28:            
+  48 0038 2BB9      		       out   11,r18 
+  49 003a 0000      		nop      
+  50 003c 00C0      		rjmp .+0 
+  51 003e 57FF      		       sbrs  r21,7  
+  52 0040 3BB9      		       out   11,r19 
+  53 0042 550F      		       lsl   r21    
+  54 0044 0000      		nop      
+  55 0046 00C0      		rjmp .+0 
+  56 0048 00C0      		rjmp .+0 
+  57 004a 00C0      		rjmp .+0 
+  58 004c 00C0      		rjmp .+0 
+  59 004e 00C0      		rjmp .+0 
+  60 0050 3BB9      		       out   11,r19 
+  61 0052 6A95      		       dec   r22    
+  62 0054 01F4      		       brne  loop28
+  63               		
+  64               	 ;  0 "" 2
+  65               	/* #NOAPP */
+  66 0056 50E0      		ldi r21,hi8(_pixels+300)
+  67 0058 8030      		cpi r24,lo8(_pixels+300)
+  68 005a 9507      		cpc r25,r21
+  69 005c 01F4      		brne .L2
+  70 005e 4FBF      		out __SREG__,r20
+  71               	.L3:
+  72 0060 00C0      		rjmp .L3
+  74               		.local	_pixels
+  75               		.comm	_pixels,300,1
+  76               		.ident	"GCC: (GNU) 13.2.0"
+  77               	.global __do_clear_bss
 DEFINED SYMBOLS
                             *ABS*:00000000 main.c
-     /tmp/cc3PMk4f.s:2      *ABS*:0000003e __SP_H__
-     /tmp/cc3PMk4f.s:3      *ABS*:0000003d __SP_L__
-     /tmp/cc3PMk4f.s:4      *ABS*:0000003f __SREG__
-     /tmp/cc3PMk4f.s:5      *ABS*:00000000 __tmp_reg__
-     /tmp/cc3PMk4f.s:6      *ABS*:00000001 __zero_reg__
-     /tmp/cc3PMk4f.s:14     .text.startup:00000000 main
-     /tmp/cc3PMk4f.s:17     .text.startup:00000000 .Loc.0
-     /tmp/cc3PMk4f.s:18     .text.startup:00000000 L0
-     /tmp/cc3PMk4f.s:23     .text.startup:00000000 .Loc.1
-     /tmp/cc3PMk4f.s:27     .text.startup:00000000 .Loc.2
-     /tmp/cc3PMk4f.s:29     .text.startup:00000000 .Loc.3
+     /tmp/cc9sHgKq.s:2      *ABS*:0000003e __SP_H__
+     /tmp/cc9sHgKq.s:3      *ABS*:0000003d __SP_L__
+     /tmp/cc9sHgKq.s:4      *ABS*:0000003f __SREG__
+     /tmp/cc9sHgKq.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/cc9sHgKq.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/cc9sHgKq.s:11     .text.startup:00000000 main
                              .bss:00000000 _pixels
-     /tmp/cc3PMk4f.s:40     .text.startup:00000010 .Loc.4
-     /tmp/cc3PMk4f.s:43     .text.startup:00000010 .Loc.5
-     /tmp/cc3PMk4f.s:44     .text.startup:00000010 .Loc.6
-     /tmp/cc3PMk4f.s:46     .text.startup:00000010 .Loc.7
-     /tmp/cc3PMk4f.s:47     .text.startup:00000010 .Loc.8
-     /tmp/cc3PMk4f.s:48     .text.startup:00000010 .Loc.9
-     /tmp/cc3PMk4f.s:49     .text.startup:00000010 .Loc.10
-     /tmp/cc3PMk4f.s:50     .text.startup:00000010 .Loc.11
-     /tmp/cc3PMk4f.s:51     .text.startup:00000010 .Loc.12
-     /tmp/cc3PMk4f.s:53     .text.startup:00000014 .Loc.13
-     /tmp/cc3PMk4f.s:55     .text.startup:00000014 .Loc.14
-     /tmp/cc3PMk4f.s:58     .text.startup:0000001a .Loc.15
-     /tmp/cc3PMk4f.s:60     .text.startup:0000001a .Loc.16
-     /tmp/cc3PMk4f.s:63     .text.startup:0000001e .Loc.17
-     /tmp/cc3PMk4f.s:66     .text.startup:0000001e .Loc.18
-     /tmp/cc3PMk4f.s:69     .text.startup:0000001e .Loc.19
-     /tmp/cc3PMk4f.s:70     .text.startup:0000001e .Loc.20
-     /tmp/cc3PMk4f.s:73     .text.startup:0000001e .Loc.21
-     /tmp/cc3PMk4f.s:75     .text.startup:0000001e .Loc.22
-     /tmp/cc3PMk4f.s:76     .text.startup:0000001e .Loc.23
-     /tmp/cc3PMk4f.s:77     .text.startup:0000001e .Loc.24
-     /tmp/cc3PMk4f.s:78     .text.startup:0000001e .Loc.25
-     /tmp/cc3PMk4f.s:80     .text.startup:00000020 .Loc.26
-     /tmp/cc3PMk4f.s:81     .text.startup:00000020 .Loc.27
-     /tmp/cc3PMk4f.s:85     .text.startup:00000024 .Loc.28
-     /tmp/cc3PMk4f.s:86     .text.startup:00000024 .Loc.29
-     /tmp/cc3PMk4f.s:88     .text.startup:00000026 .Loc.30
-     /tmp/cc3PMk4f.s:91     .text.startup:00000028 .Loc.31
-     /tmp/cc3PMk4f.s:92     .text.startup:00000028 .Loc.32
-     /tmp/cc3PMk4f.s:95     .text.startup:0000002a .Loc.33
-     /tmp/cc3PMk4f.s:100    .text.startup:0000002c .Loc.34
-     /tmp/cc3PMk4f.s:101    .text.startup:0000002c .Loc.35
-     /tmp/cc3PMk4f.s:103    .text.startup:0000002c .Loc.36
-     /tmp/cc3PMk4f.s:109    .text.startup:00000030 .Loc.37
-     /tmp/cc3PMk4f.s:111    .text.startup:00000032 .Loc.38
-     /tmp/cc3PMk4f.s:114    .text.startup:00000034 .Loc.39
-     /tmp/cc3PMk4f.s:119    .text.startup:00000038 loop100
-     /tmp/cc3PMk4f.s:122    .text.startup:0000003e L0
-     /tmp/cc3PMk4f.s:127    .text.startup:00000048 L0
-     /tmp/cc3PMk4f.s:128    .text.startup:0000004a L0
-     /tmp/cc3PMk4f.s:129    .text.startup:0000004c L0
-     /tmp/cc3PMk4f.s:130    .text.startup:0000004e L0
-     /tmp/cc3PMk4f.s:131    .text.startup:00000050 L0
-     /tmp/cc3PMk4f.s:138    .text.startup:00000056 .Loc.40
-     /tmp/cc3PMk4f.s:139    .text.startup:00000056 .Loc.41
-     /tmp/cc3PMk4f.s:145    .text.startup:0000005e .Loc.42
-     /tmp/cc3PMk4f.s:146    .text.startup:0000005e .Loc.43
-     /tmp/cc3PMk4f.s:150    .text.startup:00000060 .Loc.44
-     /tmp/cc3PMk4f.s:154    .text.startup:00000060 .Loc.45
-     /tmp/cc3PMk4f.s:155    .text.startup:00000060 .Loc.46
-     /tmp/cc3PMk4f.s:156    .text.startup:00000060 .Loc.47
-     /tmp/cc3PMk4f.s:158    .text.startup:00000062 L0
-     /tmp/cc3PMk4f.s:163    .text.startup:00000062 L0
-                     .debug_frame:00000000 L0
-     /tmp/cc3PMk4f.s:108    .text.startup:00000030 .L2
-     /tmp/cc3PMk4f.s:149    .text.startup:00000060 .L3
-     /tmp/cc3PMk4f.s:485    .debug_abbrev:00000000 .Ldebug_abbrev0
-     /tmp/cc3PMk4f.s:1106   .debug_rnglists:0000000c .LLRL12
-     /tmp/cc3PMk4f.s:1113   .debug_line:00000000 .Ldebug_line0
-     /tmp/cc3PMk4f.s:15     .text.startup:00000000 .LFB4
-     /tmp/cc3PMk4f.s:159    .text.startup:00000062 .LFE4
-     /tmp/cc3PMk4f.s:25     .text.startup:00000000 .LBI13
-     /tmp/cc3PMk4f.s:24     .text.startup:00000000 .LBB13
-     /tmp/cc3PMk4f.s:39     .text.startup:00000010 .LBE13
-     /tmp/cc3PMk4f.s:37     .text.startup:00000010 .LVL0
-     /tmp/cc3PMk4f.s:42     .text.startup:00000010 .LBI15
-     /tmp/cc3PMk4f.s:41     .text.startup:00000010 .LBB15
-     /tmp/cc3PMk4f.s:65     .text.startup:0000001e .LBE15
-     /tmp/cc3PMk4f.s:866    .debug_loclists:0000000e .LLST0
-     /tmp/cc3PMk4f.s:863    .debug_loclists:0000000c .LVUS0
-     /tmp/cc3PMk4f.s:877    .debug_loclists:0000001a .LLST2
-     /tmp/cc3PMk4f.s:874    .debug_loclists:00000018 .LVUS2
-     /tmp/cc3PMk4f.s:891    .debug_loclists:00000029 .LLST3
-     /tmp/cc3PMk4f.s:886    .debug_loclists:00000025 .LVUS3
-     /tmp/cc3PMk4f.s:912    .debug_loclists:0000003f .LLST4
-     /tmp/cc3PMk4f.s:907    .debug_loclists:0000003b .LVUS4
-     /tmp/cc3PMk4f.s:45     .text.startup:00000010 .LBB16
-     /tmp/cc3PMk4f.s:64     .text.startup:0000001e .LBE16
-     /tmp/cc3PMk4f.s:935    .debug_loclists:00000057 .LLST5
-     /tmp/cc3PMk4f.s:928    .debug_loclists:00000051 .LVUS5
-     /tmp/cc3PMk4f.s:68     .text.startup:0000001e .LBI17
-     /tmp/cc3PMk4f.s:67     .text.startup:0000001e .LBB17
-     /tmp/cc3PMk4f.s:153    .text.startup:00000060 .LBE17
-     /tmp/cc3PMk4f.s:72     .text.startup:0000001e .LBI18
-     /tmp/cc3PMk4f.s:71     .text.startup:0000001e .LBB18
-     /tmp/cc3PMk4f.s:152    .text.startup:00000060 .LBE18
-     /tmp/cc3PMk4f.s:963    .debug_loclists:00000077 .LLST6
-     /tmp/cc3PMk4f.s:960    .debug_loclists:00000075 .LVUS6
-     /tmp/cc3PMk4f.s:986    .debug_loclists:0000008f .LLST7
-     /tmp/cc3PMk4f.s:975    .debug_loclists:00000085 .LVUS7
-     /tmp/cc3PMk4f.s:1037   .debug_loclists:000000ce .LLST8
-     /tmp/cc3PMk4f.s:1034   .debug_loclists:000000cc .LVUS8
-     /tmp/cc3PMk4f.s:1050   .debug_loclists:000000dc .LLST9
-     /tmp/cc3PMk4f.s:1045   .debug_loclists:000000d8 .LVUS9
-     /tmp/cc3PMk4f.s:1068   .debug_loclists:000000ef .LLST10
-     /tmp/cc3PMk4f.s:1065   .debug_loclists:000000ed .LVUS10
-     /tmp/cc3PMk4f.s:1078   .debug_loclists:000000fa .LLST11
-     /tmp/cc3PMk4f.s:1075   .debug_loclists:000000f8 .LVUS11
-     /tmp/cc3PMk4f.s:107    .text.startup:00000030 .LVL8
-     /tmp/cc3PMk4f.s:62     .text.startup:0000001e .LVL3
-     /tmp/cc3PMk4f.s:113    .text.startup:00000034 .LVL9
-     /tmp/cc3PMk4f.s:84     .text.startup:00000024 .LVL4
-     /tmp/cc3PMk4f.s:94     .text.startup:0000002a .LVL6
-     /tmp/cc3PMk4f.s:169    .debug_info:00000000 .Ldebug_info0
+     /tmp/cc9sHgKq.s:47     .text.startup:00000038 loop28
+     /tmp/cc9sHgKq.s:50     .text.startup:0000003e L0
+     /tmp/cc9sHgKq.s:55     .text.startup:00000048 L0
+     /tmp/cc9sHgKq.s:56     .text.startup:0000004a L0
+     /tmp/cc9sHgKq.s:57     .text.startup:0000004c L0
+     /tmp/cc9sHgKq.s:58     .text.startup:0000004e L0
+     /tmp/cc9sHgKq.s:59     .text.startup:00000050 L0
+     /tmp/cc9sHgKq.s:40     .text.startup:00000030 .L2
+     /tmp/cc9sHgKq.s:71     .text.startup:00000060 .L3
 
 UNDEFINED SYMBOLS
 memset

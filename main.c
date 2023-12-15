@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include <avr/io.h>
 #include <string.h>
+#include <avr/io.h>
 #include "ws2812.c"
 
 int main(void)
