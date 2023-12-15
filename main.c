@@ -2,6 +2,7 @@
 #include <string.h>
 #include <avr/io.h>
 #include "ws2812.c"
+#include "board.c"
 
 int main(void)
 {
@@ -9,11 +10,16 @@ int main(void)
 	led_pixel(0, 0, 255, 0, 0);
 	led_update();
 
-	// TODO: Define Board Structure
-	// TODO: Generate Board with mines
+    // Generate Board with mines
+	generateField(5);
+	revealAllFields();
 
-	for(;;)
-	{
+	// show initial field
+	led_clear();
+	displayField();
+	led_update();
+
+	for (;;) {
 		// TODO: Check for Cursor input
 		// TODO: Handle cursor action (dig/flag)
 		// TODO: Update Gamestate
@@ -22,4 +28,3 @@ int main(void)
 
 	return 0;
 }
-
