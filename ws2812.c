@@ -135,12 +135,10 @@ static void _ws2812(uint8_t *pixels, uint16_t count)
 	SREG = s;
 }
 
-static void led_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b)
+static void led_pixel(uint8_t y, uint8_t x, uint8_t r, uint8_t g, uint8_t b)
 {
 	uint16_t i;
-	x = (LED_WIDTH - 1) - x;
-	y = (LED_HEIGHT - 1) - y;
-	i = 3 * ((y % 2) ? ((LED_WIDTH * y) + ((LED_WIDTH - 1) - x)) :
+	i = 3 * ((y & 1) ? ((LED_WIDTH * y) + ((LED_WIDTH - 1) - x)) :
 		(LED_WIDTH * y + x));
 
 	_pixels[i] = g;

@@ -24,7 +24,7 @@ CFLAGS = \
 	-std=gnu99 \
 	-mmcu=$(MCU)
 
-all: $(TARGET).elf size
+all: clean $(TARGET).elf size
 
 $(TARGET).elf: main.c
 	$(CC) $(CFLAGS) main.c -o $(TARGET).elf
