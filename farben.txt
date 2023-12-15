@@ -1,0 +1,8 @@
+Aufgedeckt        : Schwarz
+Nicht Aufgedeckt  : Weiß
+Flagge            : Cyan
+Cursor            : Blau Blinkend
+1 Mine            : Gruen
+2 Mine            : Gelb
+3 Mine            : Orange
+4 Mine            : Rot
